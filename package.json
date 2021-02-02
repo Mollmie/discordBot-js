@@ -1,0 +1,22 @@
+{
+  "name": "discordbot",
+  "version": "0.0.1",
+  "description": "simpel bot mit Node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mollmie/discordBot-js.git"
+  },
+  "author": "Mollmie",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Mollmie/discordBot-js/issues"
+  },
+  "homepage": "https://github.com/Mollmie/discordBot-js#readme",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  }
+}
