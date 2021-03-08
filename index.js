@@ -1,52 +1,94 @@
 // Abhängigkeiten
-const Discord = require("discord.js");
-const config = require("./config.json");
+const Discord = require('discord.js');
+const config = require('./config.json');
+const fs = require('fs');
+const chalk = require('chalk');
+const { prefix, token, host, port } = require('./config.json');
+const http = require('http');
 
 // Erstellt einen Neuen Discord Client und speichert ihn in client
-const client = new Discord.Client();
+
+exports.client = new Discord.Client();
+client = this.client;
+
+// Require our logger
+client.logger = require('./src/modules/Logger');
+
+// COMMANDS COLLECTION
+client.commands = new Discord.Collection();
+const commandFiles = fs
+  .readdirSync('./src/commands')
+  .filter((file) => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+  const command = require(`./src/commands/${file}`);
+  client.commands.set(command.name, command);
+}
+
+//EVENTS
+const eventFiles = fs
+  .readdirSync('./src/events')
+  .filter((file) => file.endsWith('.js'));
+
+for (const file of eventFiles) {
+  const event = require(`./src/events/${file}`);
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args, client));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args, client));
+  }
+}
 
 // Prefix ist das zeichen was vor der Message sthet
 // In diesem Fall wird ! als Command erkannt
-const prefix = "!";
+let startcookies = config.START_COOKIES;
 
-// Wenn jemand eine Message schreibt, dann führe die Funktion aus
-client.on("message", function(message) { 
+const init = async () => {
+  client.logger.log('Start Init');
+  // Meldet Client bei Discord an
+  client.login(token);
+};
 
-	// Wenn der Bot selber geschrieben hat, dann mache nichts
-	if (message.author.bot) return;
+// ON MASSAGES
+client.on('message', (message) => {
+  if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-	// Wenn vor der Message nicht das oben festgelegte prefix steht, dann mache nichts
-	if (!message.content.startsWith(prefix)) return;
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const command = args.shift().toLowerCase();
 
-	// List die Message nach dem Prefix
-	const commandBody = message.content.slice(prefix.length);
-  	
-  	// Erkläre ich später
-  	const args = commandBody.split(' ');
+  if (!client.commands.has(command)) return;
 
-  	// schreibt den Command (Command Body ) in Command
-  	const command = args.shift().toLowerCase();
+  try {
+    client.logger.log(
+      'Benutzer: ' +
+        chalk.yellow(message.author.username) +
+        ` | Command: ` +
+        chalk.yellow(command)
+    );
+    client.commands.get(command).execute(message, args);
+  } catch (error) {
+    client.logger.error('Fehler beim Ausführen des Commands: ' + command);
+    client.logger.error(error);
+    message.reply(
+      'Es ist ein Fehler aufgetreten, beim Ausführen dieses Commands!'
+    );
+  }
+});
 
-  	//##### Ab Hier werden die eingaben Geprüft ####//
-  	
-  	//#Command: Ping (!ping)
-  	if (command === "ping") {
-  		
-  		// Holt sich das Datum und die Zeit von heute
-  		// Rechnet dann die Zeit ab, von der Empfangenen Message
-  		const timeTaken = Date.now() - message.createdTimestamp;
+init();
 
-  		// Antwortet auf den Command
-  		message.reply(`Pong! Diese Message hat eine latenz von ${timeTaken}ms.`);
-  	}
+const requestListener = function (req, res) {
+  test = fs.promises;
+  test.readFile(__dirname + '/index.html').then((contents) => {
+    res.setHeader('Content-Type', 'text/html');
+    res.writeHead(200);
+    res.end(contents);
+  });
+};
 
-  	//#Command: Cookie (!cookie)
-  	if (command === "cookie") {
-  		message.replay('Leider ist die Dose alle! :(')
-  	}
-
-}); 
-
-// Meldet Client bei Discord an
-client.login(config.BOT_TOKEN);
-
+const server = http.createServer(requestListener);
+server.listen(port, host, () => {
+  client.logger.log(
+    'Server is running on ' + chalk.green(`http://${host}:${port}`)
+  );
+});

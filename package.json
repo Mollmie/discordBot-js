@@ -10,6 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/Mollmie/discordBot-js.git"
   },
+  "type": "module",
   "author": "Mollmie",
   "license": "MIT",
   "bugs": {
@@ -17,6 +18,8 @@
   },
   "homepage": "https://github.com/Mollmie/discordBot-js#readme",
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "discord.js": "^12.5.1",
+    "chalk": "^4.0.0",
+    "moment": "^2.24.0"
   }
 }

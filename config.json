@@ -1,3 +1,7 @@
 {
-	"BOT_TOKEN" : "DISCORD BOT TOCKEN"
+	"token" : "BOT TOCKEN",
+	"prefix": "!",
+	"host": "localhost",
+	"port": "8080",
+	"START_COOKIES": "100"
 }
